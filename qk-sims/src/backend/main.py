@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+﻿from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
@@ -25,13 +25,11 @@ def implied_prob(odds: float):
         return odds / (odds + 100)
 
 def multiplicative_devig(odds1: float, odds2: float):
-    #Multiplicative devigging method - applies multiplicative margin equally to each outcome
     
     total_implied_prob = implied_prob(odds1) + implied_prob(odds2)
     return implied_prob(odds1) / total_implied_prob
 
 def additive_devig(odds1: float, odds2: float):
-    # Additive devigging method - subtracts flat margin equally from each outcome
     
     q1 = implied_prob(odds1)
     q2 = implied_prob(odds2)
@@ -48,56 +46,40 @@ def additive_devig(odds1: float, odds2: float):
 def power_devig(odds1: float, odds2: float):
     import math
     
-    # Calculate implied probabilities
     q1 = implied_prob(odds1)
     q2 = implied_prob(odds2)
     
-    # Total overround
     S = q1 + q2
     overround = S - 1
     
-    # For power method, we need to solve for alpha such that:
-    # (q1^alpha + q2^alpha) / (q1^alpha + q2^alpha) = 1
-    # But we want to remove the overround, so we solve:
-    # (q1^alpha + q2^alpha) = 1
     
-    # Use Newton-Raphson to solve for alpha
-    alpha = 1.0  # Initial guess
+    alpha = 1.0
     
-    for _ in range(20):  # Max iterations
-        # Calculate current sum
+    for _ in range(20):
         q1_alpha = q1 ** alpha
         q2_alpha = q2 ** alpha
         sum_powered = q1_alpha + q2_alpha
         
-        # Error: we want sum_powered = 1
         error = sum_powered - 1
         
         if abs(error) < 1e-8:
             break
             
-        # Derivative of sum_powered with respect to alpha
-        # d/dalpha(q1^alpha + q2^alpha) = q1^alpha * ln(q1) + q2^alpha * ln(q2)
         derivative = q1_alpha * math.log(q1) + q2_alpha * math.log(q2)
         
-        if abs(derivative) < 1e-10:  # Avoid division by zero
+        if abs(derivative) < 1e-10:
             break
             
-        # Newton-Raphson update
         alpha = alpha - error / derivative
         
-        # Ensure alpha stays positive
         alpha = max(alpha, 0.01)
     
-    # Apply power transform
     q1_powered = q1 ** alpha
     q2_powered = q2 ** alpha
     
-    # Normalize
     total_powered = q1_powered + q2_powered
     p1 = q1_powered / total_powered
     
-    # Return the fair probability for odds1
     return p1
 
 def worst_case_devig(odds1: float, odds2: float):
@@ -124,11 +106,8 @@ def calculate_market_juice(original_prob, fair_prob):
 def calculate_kelly_wager(fair_prob, payout_odds, bankroll, kelly_fraction):
     payout_prob = implied_prob(payout_odds)
     
-    # Calculate edge (EV%)
     edge = (fair_prob - payout_prob) / payout_prob * 100
     
-    # Kelly formula: f = (bp - q) / b
-    # where b = payout odds (as decimal), p = win probability, q = loss probability
     if payout_odds > 0:
         b = payout_odds / 100  
     else:
@@ -168,7 +147,6 @@ def parse_odds_string(odds_str: str):
         else:
             return None
     else:
-        # Single number treated as probability (percentage)
         try:
             num = float(odds_str.strip())
             return {"type": "probability", "value": num}
@@ -233,7 +211,6 @@ def generate_complete_output(parsed_legs, final_odds, bankroll, kelly_fraction, 
             fair_value = leg["value"] / 100
         total_fv *= fair_value
     
-    # For worst case, determine the overall method used
     if devig_method == "worst_case" and worst_case_methods:
         from collections import Counter
         method_counts = Counter(worst_case_methods)
@@ -241,7 +218,6 @@ def generate_complete_output(parsed_legs, final_odds, bankroll, kelly_fraction, 
 
     kelly_data = calculate_kelly_wager(total_fv, final_odds, bankroll, kelly_fraction)
     
-    # Add devig method to output header - show actual method used for worst_case
     if devig_method == "worst_case":
         method_display = {
             "multiplicative": "Worst-case (Multiplicative)",
@@ -258,7 +234,6 @@ def generate_complete_output(parsed_legs, final_odds, bankroll, kelly_fraction, 
     output.insert(0, f"{method_display}")
     output.append(f"Final Odds: {final_odds}; Fair Value = {prob_to_american_odds(total_fv)} ({total_fv * 100:.1f}%)")
     
-    # Only show Kelly wager if it's profitable
     if kelly_data['is_profitable']:
         output.append(f"Summary: EV% = {kelly_data['edge_percent']:.1f}%, Kelly Wager = ${kelly_data['kelly_wager']:.2f} (Full={kelly_data['full_kelly']:.2f}u, 1/2={kelly_data['half_kelly']:.2f}u, 1/4={kelly_data['quarter_kelly']:.2f}u)")
     else:
@@ -295,7 +270,6 @@ def calculate_bet(input_str: str, final_odds: int, bankroll: float, kelly_fracti
         return {"error": str(e), "input": input_str}
 
 
-# Monte Carlo Simulation Models
 class Leg(BaseModel):
     id: int
     fairProbability: Optional[float] = None
@@ -322,7 +296,7 @@ class SimulationResults(BaseModel):
     riskOfRuin: float
     confidenceIntervals: dict
     simulations: List[float]
-    simulationProgressions: List[List[float]]  # Bankroll progression for each simulation
+    simulationProgressions: List[List[float]]
     individualLegRecords: Optional[dict] = None
     parlayRecords: Optional[dict] = None
 
@@ -330,26 +304,24 @@ def run_monte_carlo_simulation(request: MonteCarloRequest) -> SimulationResults:
     final_bankrolls = []
     individual_leg_wins = {}
     parlay_wins = []
-    simulation_progressions = []  # Track bankroll progression for each simulation
+    simulation_progressions = []
     
-    # Set random seed for reproducibility
     random.seed(42)
     np.random.seed(42)
     
     for sim in range(request.num_simulations):
         current_bankroll = request.starting_bankroll
         leg_wins = {}
-        bankroll_progression = [current_bankroll]  # Track bankroll at each bet
+        bankroll_progression = [current_bankroll]
         if request.mode == "B" and request.legs:
             leg_wins = {leg.id: 0 for leg in request.legs}
         parlay_wins_sim = 0
         
         for bet in range(request.sample_size):
             if current_bankroll <= 0:
-                break  # Bankrupt
+                break
                 
             if request.mode == "A":
-                # Mode A: Fair probability + payout odds (parlay)
                 fair_prob_one_leg = request.fair_prob_one_leg / 100
                 total_payout = request.total_payout
                 num_legs = request.number_of_legs
@@ -363,14 +335,11 @@ def run_monte_carlo_simulation(request: MonteCarloRequest) -> SimulationResults:
                 edge = combined_fair_prob - implied_prob_value
                 
                 if edge >= 0:
-                    # Positive edge: use Kelly Criterion (based on starting bankroll)
                     kelly_percentage = edge / implied_prob_value if implied_prob_value > 0 else 0
                     wager = request.starting_bankroll * request.kelly_fraction * kelly_percentage
                 else:
-                    # Negative edge: flat bet 1% of bankroll
                     wager = request.starting_bankroll * 0.01
                 
-                # All legs must win for the parlay to win
                 parlay_wins_current_bet = True
                 for leg in range(num_legs):
                     if random.random() >= fair_prob_one_leg:
@@ -386,28 +355,22 @@ def run_monte_carlo_simulation(request: MonteCarloRequest) -> SimulationResults:
                 else:
                     current_bankroll -= wager
                 
-                # Track bankroll progression after each bet
                 bankroll_progression.append(current_bankroll)
                     
             elif request.mode == "B":
-                # Mode B: Edge % + payout per bet
                 edge_percent = request.estimated_edge / 100
                 payout_odds = request.payout_per_bet
                 
-                # Calculate fair probability using multiplicative approach
                 implied_prob_value = implied_prob(payout_odds)
                 fair_prob = implied_prob_value * (1 + edge_percent)
                 
                 edge = fair_prob - implied_prob_value
                 
                 if edge >= 0:
-                    # Positive edge: use Kelly Criterion (based on starting bankroll)
                     kelly_percentage = edge / implied_prob_value if implied_prob_value > 0 else 0
                     wager = request.starting_bankroll * request.kelly_fraction * kelly_percentage
-                    # Cap Kelly wager at 10% of starting bankroll to prevent unrealistic scenarios
                     wager = min(wager, request.starting_bankroll * 0.10)
                 else:
-                    # Negative edge: flat bet 1% of bankroll
                     wager = request.starting_bankroll * 0.01
                 
                 if random.random() < fair_prob:
@@ -415,14 +378,12 @@ def run_monte_carlo_simulation(request: MonteCarloRequest) -> SimulationResults:
                 else:
                     current_bankroll -= wager
                 
-                # Track bankroll progression after each bet
                 bankroll_progression.append(current_bankroll)
         
         final_bankrolls.append(current_bankroll)
         parlay_wins.append(parlay_wins_sim)
         simulation_progressions.append(bankroll_progression)
     
-    # Calculate statistics
     final_bankrolls = np.array(final_bankrolls)
     
     prob_profit = np.mean(final_bankrolls > request.starting_bankroll)
@@ -430,7 +391,6 @@ def run_monte_carlo_simulation(request: MonteCarloRequest) -> SimulationResults:
     median_final = np.median(final_bankrolls)
     risk_of_ruin = np.mean(final_bankrolls <= 0)
     
-    # Confidence intervals with ROI calculations
     bottom1_value = float(np.percentile(final_bankrolls, 1))
     bottom5_value = float(np.percentile(final_bankrolls, 5))
     bottom10_value = float(np.percentile(final_bankrolls, 10))

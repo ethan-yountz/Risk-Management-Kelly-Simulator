@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import "./globals.css";
 import { useState } from "react";
 
@@ -10,7 +10,6 @@ export default function Home() {
   const [finalOdds, setFinalOdds] = useState<string>("324");
   const [devigMethod, setDevigMethod] = useState<string>("worst_case");
   
-  // Use environment variable for API URL, fallback to localhost for development
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   const handleClick = async () => {
@@ -42,7 +41,6 @@ export default function Home() {
           </header>
           
           <div style={{ display: "flex", gap: "40px", marginTop: "20px" }}>
-            {/* Left Column - Inputs */}
             <div style={{ flex: "1", minWidth: "400px" }}>
       
       <div style={{ margin: "20px 0" }}>
@@ -163,7 +161,6 @@ export default function Home() {
               </button>
             </div>
             
-            {/* Right Column - Results */}
             <div style={{ flex: "1", minWidth: "400px" }}>
               <h2 style={{ marginBottom: "20px" }}>Results</h2>
               <div style={{

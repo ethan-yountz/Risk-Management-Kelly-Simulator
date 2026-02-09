@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import "../globals.css";
 import { useState, useEffect } from "react";
 import dynamic from 'next/dynamic';
@@ -41,11 +41,9 @@ export default function ScenarioSimulator() {
     { id: 1, fairProbability: 0.5, payoutOdds: 100 },
     { id: 2, fairProbability: 0.5, payoutOdds: 100 }
   ]);
-  // Mode A inputs
   const [fairProbOneLeg, setFairProbOneLeg] = useState<string>("50");
   const [totalPayout, setTotalPayout] = useState<string>("120");
   const [numberOfLegs, setNumberOfLegs] = useState<string>("1");
-  // Mode B inputs
   const [estimatedEdge, setEstimatedEdge] = useState<string>("5");
   const [payoutPerBet, setPayoutPerBet] = useState<string>("100");
   const [results, setResults] = useState<SimulationResults | null>(null);
@@ -271,7 +269,6 @@ export default function ScenarioSimulator() {
             </div>
           </div>
 
-          {/* Mode Selection */}
           <div style={{ marginBottom: "15px", padding: "12px", border: "1px solid #ddd", borderRadius: "8px" }}>
               <h2 style={{ marginBottom: "12px", color: "white" }}>Mode Selection</h2>
             <div style={{ display: "flex", gap: "20px" }}>
@@ -300,7 +297,6 @@ export default function ScenarioSimulator() {
             </div>
           </div>
 
-          {/* Mode A Inputs */}
           {mode === "A" && (
             <div style={{ marginBottom: "15px", padding: "12px", border: "1px solid #444", borderRadius: "8px", backgroundColor: "#2a2a2a" }}>
               
@@ -370,7 +366,6 @@ export default function ScenarioSimulator() {
             </div>
           )}
 
-          {/* Mode B Inputs */}
           {mode === "B" && (
             <div style={{ marginBottom: "15px", padding: "12px", border: "1px solid #444", borderRadius: "8px", backgroundColor: "#2a2a2a" }}>              
               <div style={{ marginBottom: "12px" }}>
@@ -417,7 +412,6 @@ export default function ScenarioSimulator() {
           )}
         </div>
 
-        {/* Right Column - Results */}
         <div style={{ flex: "1", minWidth: "500px" }}>
           <h2 style={{ marginBottom: "20px" }}>Simulation Results</h2>
           

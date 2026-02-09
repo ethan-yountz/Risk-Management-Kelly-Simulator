@@ -1,4 +1,3 @@
-# PowerShell script to start Next.js development server
-Set-Location $PSScriptRoot
+﻿Set-Location (Join-Path $PSScriptRoot "..")
 Write-Host "Starting Next.js development server..." -ForegroundColor Green
 npm run dev

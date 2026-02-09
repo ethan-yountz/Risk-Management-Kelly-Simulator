@@ -1,4 +1,4 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -44,7 +44,6 @@ h3 {
   cursor: pointer;
 }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -62,31 +61,25 @@ h3 {
   background: #888;
 }
 
-/* Focus styles */
 input:focus, select:focus, textarea:focus {
   outline: none;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
 }
 
-/* Button hover effects */
 button {
   transition: all 0.2s ease-in-out;
 }
 
-/* Card shadows */
 .shadow-sm {
   box-shadow: 0 1px 2px 0 rgba(255, 255, 255, 0.1);
 }
 
-/* Responsive design is handled by Tailwind CSS automatically */
 
-/* Navigation styles */
 nav a:hover {
   background-color: #0056b3 !important;
   color: #fff !important;
 }
 
-/* Page content spacing */
 main {
   padding-top: 0;
 }

@@ -27,3 +27,8 @@ venv.bak/
 # OS
 .DS_Store
 Thumbs.db
+# Recursive Python cache dirs
+**/__pycache__/
+*.pyo
+*.pyd
+
